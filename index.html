@@ -416,11 +416,11 @@ document.getElementById('today-split').textContent = `Split: ${getSplit(today)}`
 // ── Today's data ─────────────────────────────────────────
 const todayData = DATA.find(d => d.date === today) || {};
 
-function setVal(id, value, unit = '') {
+function setVal(id, value, unit = '', decimals = 0) {
   const el = document.getElementById(id);
   if (value !== null && value !== undefined) {
     el.classList.remove('no-data');
-    el.innerHTML = fmtNum(value) + (unit ? `<span class="card-unit">${unit}</span>` : '');
+    el.innerHTML = fmtNum(value, decimals) + (unit ? `<span class="card-unit">${unit}</span>` : '');
   } else {
     el.classList.add('no-data');
     el.innerHTML = '—' + (unit ? `<span class="card-unit">${unit}</span>` : '');
@@ -438,7 +438,7 @@ function setMacro(id, value) {
   }
 }
 
-setVal('val-weight', todayData.weight ?? null, 'lbs');
+setVal('val-weight', todayData.weight ?? null, 'lbs', 1);
 setVal('val-steps', todayData.steps ?? null);
 setVal('val-calories-eaten', todayData.caloriesEaten ?? null, 'kcal');
 setMacro('val-protein', todayData.protein ?? null);
