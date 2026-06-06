@@ -600,6 +600,11 @@ new Chart(document.getElementById('chart-macros'), {
         position: 'top',
         labels: { color: '#6B7280', font: { size: 11 }, boxWidth: 12, padding: 12 }
       }
+    },
+    scales: {
+      ...chartDefaults.scales,
+      x: { ...chartDefaults.scales.x, stacked: true },
+      y: { ...chartDefaults.scales.y, stacked: true }
     }
   }
 });
