@@ -156,6 +156,32 @@
       margin-bottom: 8px;
     }
 
+    /* Toggle */
+    .toggle-wrap {
+      display: flex;
+      background: var(--blue-light);
+      border-radius: 10px;
+      padding: 3px;
+      margin: 16px 0 4px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 8px 0;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggle-btn.active {
+      background: var(--white);
+      color: var(--blue-dark);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
     /* Macros row */
     .macros-row {
       display: grid;
@@ -278,41 +304,40 @@ const DATA = [
 
 <div class="content">
 
-  <!-- TODAY -->
-  <div class="section-label">Today</div>
-  <div class="today-strip">
+  <!-- DATE STRIP -->
+  <div class="today-strip" style="margin-top: 16px;">
     <div class="today-dot"></div>
     <div class="today-label" id="today-date">—</div>
   </div>
 
-  <!-- TOP METRICS: Weight + Steps -->
-  <div style="margin-top: 10px;">
-    <div class="cards-grid">
-      <div class="card highlight">
-        <div class="card-icon">⚖️</div>
-        <div class="card-label">Weight</div>
-        <div id="val-weight" class="card-value no-data">—<span class="card-unit">lbs</span></div>
-      </div>
-      <div class="card">
-        <div class="card-icon">👟</div>
-        <div class="card-label">Steps</div>
-        <div id="val-steps" class="card-value no-data">—</div>
-      </div>
+  <!-- TOGGLE -->
+  <div class="toggle-wrap">
+    <button class="toggle-btn active" id="btn-today" onclick="switchView('today')">Today</button>
+    <button class="toggle-btn" id="btn-week" onclick="switchView('week')">This Week Avg</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="cards-grid" style="margin-top: 10px;">
+    <div class="card highlight">
+      <div class="card-icon">⚖️</div>
+      <div class="card-label">Weight</div>
+      <div id="val-weight" class="card-value no-data">—<span class="card-unit">lbs</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">👟</div>
+      <div class="card-label">Steps</div>
+      <div id="val-steps" class="card-value no-data">—</div>
     </div>
   </div>
 
-  <!-- CALORIES EATEN -->
-  <div class="section-label">Calories Eaten</div>
-  <div class="cards-grid" style="grid-template-columns: 1fr;">
+  <div style="margin-top: 10px;">
     <div class="card">
-      <div class="card-label">Total Calories</div>
+      <div class="card-label">Calories Eaten</div>
       <div id="val-calories-eaten" class="card-value no-data">—<span class="card-unit">kcal</span></div>
     </div>
   </div>
 
-  <!-- MACROS -->
-  <div class="section-label">Macros</div>
-  <div class="macros-row">
+  <div class="macros-row" style="margin-top: 10px;">
     <div class="macro-card">
       <div class="macro-icon">🥩</div>
       <div class="macro-label">Protein</div>
@@ -333,9 +358,7 @@ const DATA = [
     </div>
   </div>
 
-  <!-- CALORIES BURNED -->
-  <div class="section-label">Calories Burned</div>
-  <div class="calories-row">
+  <div class="calories-row" style="margin-top: 10px;">
     <div class="card">
       <div class="card-icon">🔥</div>
       <div class="card-label">Total Burned</div>
@@ -411,9 +434,7 @@ const elapsed = Math.max(0, Math.floor((now - start) / 86400000) + 1);
 
 document.getElementById('today-date').textContent = formatDate(today);
 
-// ── Today's data ─────────────────────────────────────────
-const todayData = DATA.find(d => d.date === today) || {};
-
+// ── Helpers ───────────────────────────────────────────────
 function setVal(id, value, unit = '', decimals = 0) {
   const el = document.getElementById(id);
   if (value !== null && value !== undefined) {
@@ -424,7 +445,6 @@ function setVal(id, value, unit = '', decimals = 0) {
     el.innerHTML = '—' + (unit ? `<span class="card-unit">${unit}</span>` : '');
   }
 }
-
 function setMacro(id, value) {
   const el = document.getElementById(id);
   if (value !== null && value !== undefined) {
@@ -436,14 +456,54 @@ function setMacro(id, value) {
   }
 }
 
-setVal('val-weight', todayData.weight ?? null, 'lbs', 1);
-setVal('val-steps', todayData.steps ?? null);
-setVal('val-calories-eaten', todayData.caloriesEaten ?? null, 'kcal');
-setMacro('val-protein', todayData.protein ?? null);
-setMacro('val-carbs', todayData.carbs ?? null);
-setMacro('val-fat', todayData.fat ?? null);
-setVal('val-total-burned', todayData.totalCaloriesBurned ?? null, 'kcal');
-setVal('val-active-burned', todayData.activeCaloriesBurned ?? null, 'kcal');
+// ── Weekly average ────────────────────────────────────────
+function avg(arr) {
+  const vals = arr.filter(v => v !== null && v !== undefined);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+}
+function weekData() {
+  const nowMs = parseDate(today).getTime();
+  return DATA.filter(d => {
+    const diff = (nowMs - parseDate(d.date).getTime()) / 86400000;
+    return diff >= 0 && diff < 7;
+  });
+}
+
+// ── Render stats ──────────────────────────────────────────
+function renderStats(view) {
+  const source = view === 'today'
+    ? (DATA.find(d => d.date === today) || {})
+    : (() => {
+        const w = weekData();
+        return {
+          weight:               avg(w.map(d => d.weight)),
+          steps:                avg(w.map(d => d.steps)),
+          caloriesEaten:        avg(w.map(d => d.caloriesEaten)),
+          protein:              avg(w.map(d => d.protein)),
+          carbs:                avg(w.map(d => d.carbs)),
+          fat:                  avg(w.map(d => d.fat)),
+          totalCaloriesBurned:  avg(w.map(d => d.totalCaloriesBurned)),
+          activeCaloriesBurned: avg(w.map(d => d.activeCaloriesBurned)),
+        };
+      })();
+
+  setVal('val-weight',        source.weight              ?? null, 'lbs', 1);
+  setVal('val-steps',         source.steps               ?? null, '', 0);
+  setVal('val-calories-eaten',source.caloriesEaten        ?? null, 'kcal');
+  setMacro('val-protein',     source.protein             ?? null);
+  setMacro('val-carbs',       source.carbs               ?? null);
+  setMacro('val-fat',         source.fat                 ?? null);
+  setVal('val-total-burned',  source.totalCaloriesBurned  ?? null, 'kcal');
+  setVal('val-active-burned', source.activeCaloriesBurned ?? null, 'kcal');
+}
+
+function switchView(view) {
+  document.getElementById('btn-today').classList.toggle('active', view === 'today');
+  document.getElementById('btn-week').classList.toggle('active', view === 'week');
+  renderStats(view);
+}
+
+renderStats('today');
 
 // ── Charts ────────────────────────────────────────────────
 const BLUE = '#29B6F6';
