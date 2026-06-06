@@ -410,7 +410,6 @@ const now = parseDate(today);
 const elapsed = Math.max(0, Math.floor((now - start) / 86400000) + 1);
 
 document.getElementById('today-date').textContent = formatDate(today);
-document.getElementById('today-split').textContent = `Split: ${getSplit(today)}`;
 
 // ── Today's data ─────────────────────────────────────────
 const todayData = DATA.find(d => d.date === today) || {};
