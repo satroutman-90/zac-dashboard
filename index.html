@@ -565,39 +565,30 @@ new Chart(document.getElementById('chart-calories'), {
 
 // Macros
 new Chart(document.getElementById('chart-macros'), {
-  type: 'line',
+  type: 'bar',
   data: {
     labels,
     datasets: [
       {
         label: 'Protein',
         data: DATA.map(d => d.protein ?? null),
-        borderColor: ORANGE,
-        tension: 0.4,
-        pointRadius: 3,
-        pointBackgroundColor: ORANGE,
-        spanGaps: true,
-        fill: false
+        backgroundColor: ORANGE,
+        borderRadius: 4,
+        borderSkipped: false
       },
       {
         label: 'Carbs',
         data: DATA.map(d => d.carbs ?? null),
-        borderColor: GREEN,
-        tension: 0.4,
-        pointRadius: 3,
-        pointBackgroundColor: GREEN,
-        spanGaps: true,
-        fill: false
+        backgroundColor: GREEN,
+        borderRadius: 4,
+        borderSkipped: false
       },
       {
         label: 'Fat',
         data: DATA.map(d => d.fat ?? null),
-        borderColor: PURPLE,
-        tension: 0.4,
-        pointRadius: 3,
-        pointBackgroundColor: PURPLE,
-        spanGaps: true,
-        fill: false
+        backgroundColor: PURPLE,
+        borderRadius: 4,
+        borderSkipped: false
       }
     ]
   },
