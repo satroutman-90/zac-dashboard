@@ -448,9 +448,10 @@ setVal('val-active-burned', todayData.activeCaloriesBurned ?? null, 'kcal');
 // ── Charts ────────────────────────────────────────────────
 const BLUE = '#29B6F6';
 const BLUE_DARK = '#0288D1';
-const RED = '#DC2626';
-const STEEL_BLUE = '#2563EB';
-const SLATE = '#64748B';
+const ORANGE = '#FB923C';
+const CHARGERS_BLUE = '#0080C6';
+const CHARGERS_NAVY = '#002A5E';
+const CHARGERS_YELLOW = '#FFC20E';
 
 const chartDefaults = {
   responsive: true,
@@ -528,12 +529,12 @@ new Chart(document.getElementById('chart-calories'), {
       {
         label: 'Eaten',
         data: DATA.map(d => d.caloriesEaten ?? null),
-        borderColor: RED,
-        backgroundColor: 'rgba(220,38,38,0.08)',
+        borderColor: ORANGE,
+        backgroundColor: 'rgba(251,146,60,0.08)',
         fill: true,
         tension: 0.4,
         pointRadius: 3,
-        pointBackgroundColor: RED,
+        pointBackgroundColor: ORANGE,
         spanGaps: true
       },
       {
@@ -571,19 +572,19 @@ new Chart(document.getElementById('chart-macros'), {
       {
         label: 'Protein',
         data: DATA.map(d => d.protein ?? null),
-        backgroundColor: RED,
+        backgroundColor: CHARGERS_BLUE,
         borderRadius: 0
       },
       {
         label: 'Carbs',
         data: DATA.map(d => d.carbs ?? null),
-        backgroundColor: STEEL_BLUE,
+        backgroundColor: CHARGERS_NAVY,
         borderRadius: 0
       },
       {
         label: 'Fat',
         data: DATA.map(d => d.fat ?? null),
-        backgroundColor: SLATE,
+        backgroundColor: CHARGERS_YELLOW,
         borderRadius: 0
       }
     ]
