@@ -271,9 +271,8 @@ const DATA = [
 <div class="header">
   <div class="header-top">
     <div>
-      <h1>⚡ Zac's Fitness</h1>
-      </div>
-    <div class="day-badge" id="day-badge">—</div>
+      <h1>⚡ Zac's Fitness Dashboard</h1>
+    </div>
   </div>
 </div>
 
@@ -411,7 +410,6 @@ const start = parseDate(PROGRAM.startDate);
 const now = parseDate(today);
 const elapsed = Math.max(0, Math.floor((now - start) / 86400000) + 1);
 
-document.getElementById('day-badge').textContent = `Day ${elapsed}`;
 document.getElementById('today-date').textContent = formatDate(today);
 document.getElementById('today-split').textContent = `Split: ${getSplit(today)}`;
 
