@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zac's Fitness Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #29B6F6;
+      --blue-light: #E1F5FE;
+      --blue-mid: #81D4FA;
+      --blue-dark: #0288D1;
+      --text: #1A1A2E;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --white: #FFFFFF;
+      --bg: #F8FBFF;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    /* Header */
+    .header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .day-badge {
+      background: var(--blue-light);
+      color: var(--blue-dark);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .progress-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: var(--blue-light);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--blue-dark));
+      border-radius: 6px;
+      transition: width 0.4s ease;
+    }
+    .progress-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Content */
+    .content {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 20px 16px 0;
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin: 24px 0 10px;
+    }
+
+    /* Today's date strip */
+    .today-strip {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .today-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+      flex-shrink: 0;
+    }
+    .today-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .today-note {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    /* Metric cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card.highlight {
+      border-color: var(--blue-mid);
+      background: linear-gradient(135deg, var(--white) 60%, var(--blue-light));
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .card-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .card-value.no-data {
+      font-size: 20px;
+      color: #CBD5E1;
+    }
+    .card-unit {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-left: 3px;
+    }
+    .card-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    /* Macros row */
+    .macros-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .macro-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .macro-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .macro-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .macro-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .macro-value.no-data {
+      font-size: 16px;
+      color: #CBD5E1;
+    }
+    .macro-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Calories burned row */
+    .calories-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* Charts */
+    .chart-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+    .chart-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    .chart-wrap {
+      position: relative;
+      height: 160px;
+    }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 380px) {
+      .card-value { font-size: 24px; }
+      .macro-value { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     DATA — UPDATE THIS SECTION DAILY
+═══════════════════════════════════════════ -->
+<script>
+const PROGRAM = {
+  name: "Zac",
+  startDate: "2026-06-01",
+  endDate: "2026-07-07",
+  totalDays: 37
+};
+
+// Each entry = one day. Add a new object each day.
+// All fields optional — use null if not available.
+const DATA = [
+  // {
+  //   date: "2026-06-01",
+  //   weight: 185,           // lbs
+  //   steps: 8423,           // step count
+  //   caloriesEaten: 2100,   // kcal
+  //   protein: 180,          // g
+  //   carbs: 220,            // g
+  //   fat: 65,               // g
+  //   totalCaloriesBurned: 2800,   // kcal
+  //   activeCaloriesBurned: 620    // kcal (Apple Watch active)
+  // }
+];
+</script>
+<!-- ═══════════════════════════════════════════ -->
+
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>⚡ Zac's Fitness</h1>
+      <div class="header-sub" id="header-sub">Loading...</div>
+    </div>
+    <div class="day-badge" id="day-badge">—</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+    <div class="progress-label" id="progress-label">0 / 37 days</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- TODAY -->
+  <div class="section-label">Today</div>
+  <div class="today-strip">
+    <div class="today-dot"></div>
+    <div class="today-label" id="today-date">—</div>
+    <div class="today-note" id="today-split">—</div>
+  </div>
+
+  <!-- TOP METRICS: Weight + Steps -->
+  <div style="margin-top: 10px;">
+    <div class="cards-grid">
+      <div class="card highlight">
+        <div class="card-icon">⚖️</div>
+        <div class="card-label">Weight</div>
+        <div id="val-weight" class="card-value no-data">—<span class="card-unit">lbs</span></div>
+      </div>
+      <div class="card">
+        <div class="card-icon">👟</div>
+        <div class="card-label">Steps</div>
+        <div id="val-steps" class="card-value no-data">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALORIES EATEN -->
+  <div class="section-label">Calories Eaten</div>
+  <div class="cards-grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <div class="card-label">Total Calories</div>
+      <div id="val-calories-eaten" class="card-value no-data">—<span class="card-unit">kcal</span></div>
+    </div>
+  </div>
+
+  <!-- MACROS -->
+  <div class="section-label">Macros</div>
+  <div class="macros-row">
+    <div class="macro-card">
+      <div class="macro-icon">🥩</div>
+      <div class="macro-label">Protein</div>
+      <div id="val-protein" class="macro-value no-data">—</div>
+      <div class="macro-unit">grams</div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-icon">🌾</div>
+      <div class="macro-label">Carbs</div>
+      <div id="val-carbs" class="macro-value no-data">—</div>
+      <div class="macro-unit">grams</div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-icon">🥑</div>
+      <div class="macro-label">Fat</div>
+      <div id="val-fat" class="macro-value no-data">—</div>
+      <div class="macro-unit">grams</div>
+    </div>
+  </div>
+
+  <!-- CALORIES BURNED -->
+  <div class="section-label">Calories Burned</div>
+  <div class="calories-row">
+    <div class="card">
+      <div class="card-icon">🔥</div>
+      <div class="card-label">Total Burned</div>
+      <div id="val-total-burned" class="card-value no-data">—<span class="card-unit">kcal</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-label">Active Burned</div>
+      <div id="val-active-burned" class="card-value no-data">—<span class="card-unit">kcal</span></div>
+    </div>
+  </div>
+
+  <!-- TRENDS -->
+  <div class="section-label">Trends</div>
+
+  <div class="chart-card">
+    <div class="chart-title">Weight (lbs)</div>
+    <div class="chart-wrap"><canvas id="chart-weight"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Steps</div>
+    <div class="chart-wrap"><canvas id="chart-steps"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Calories — Eaten vs. Burned</div>
+    <div class="chart-wrap"><canvas id="chart-calories"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Macros (g)</div>
+    <div class="chart-wrap"><canvas id="chart-macros"></canvas></div>
+  </div>
+
+</div>
+
+<script>
+// ── Helpers ──────────────────────────────────────────────
+function parseDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function formatDate(str) {
+  const d = parseDate(str);
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+function dayNum(dateStr) {
+  const start = parseDate(PROGRAM.startDate);
+  const d = parseDate(dateStr);
+  return Math.floor((d - start) / 86400000) + 1;
+}
+function todayStr() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+function fmtNum(n, decimals = 0) {
+  if (n === null || n === undefined) return null;
+  return n.toLocaleString('en-US', { maximumFractionDigits: decimals });
+}
+
+const SPLITS = ['Legs', 'Chest', 'Back', 'Arms', 'Shoulders'];
+function getSplit(dateStr) {
+  const d = dayNum(dateStr) - 1;
+  return SPLITS[((d % 5) + 5) % 5];
+}
+
+// ── Program progress ─────────────────────────────────────
+const today = todayStr();
+const start = parseDate(PROGRAM.startDate);
+const end = parseDate(PROGRAM.endDate);
+const now = parseDate(today);
+const elapsed = Math.max(0, Math.floor((now - start) / 86400000) + 1);
+const pct = Math.min(100, Math.round((elapsed / PROGRAM.totalDays) * 100));
+const daysLeft = Math.max(0, Math.ceil((end - now) / 86400000));
+
+document.getElementById('progress-fill').style.width = pct + '%';
+document.getElementById('progress-label').textContent = `${elapsed} / ${PROGRAM.totalDays} days`;
+document.getElementById('day-badge').textContent = `Day ${elapsed}`;
+document.getElementById('header-sub').textContent = `${daysLeft} days remaining · ${pct}% complete`;
+document.getElementById('today-date').textContent = formatDate(today);
+document.getElementById('today-split').textContent = `Split: ${getSplit(today)}`;
+
+// ── Today's data ─────────────────────────────────────────
+const todayData = DATA.find(d => d.date === today) || {};
+
+function setVal(id, value, unit = '') {
+  const el = document.getElementById(id);
+  if (value !== null && value !== undefined) {
+    el.classList.remove('no-data');
+    el.innerHTML = fmtNum(value) + (unit ? `<span class="card-unit">${unit}</span>` : '');
+  } else {
+    el.classList.add('no-data');
+    el.innerHTML = '—' + (unit ? `<span class="card-unit">${unit}</span>` : '');
+  }
+}
+
+function setMacro(id, value) {
+  const el = document.getElementById(id);
+  if (value !== null && value !== undefined) {
+    el.classList.remove('no-data');
+    el.textContent = fmtNum(value);
+  } else {
+    el.classList.add('no-data');
+    el.textContent = '—';
+  }
+}
+
+setVal('val-weight', todayData.weight ?? null, 'lbs');
+setVal('val-steps', todayData.steps ?? null);
+setVal('val-calories-eaten', todayData.caloriesEaten ?? null, 'kcal');
+setMacro('val-protein', todayData.protein ?? null);
+setMacro('val-carbs', todayData.carbs ?? null);
+setMacro('val-fat', todayData.fat ?? null);
+setVal('val-total-burned', todayData.totalCaloriesBurned ?? null, 'kcal');
+setVal('val-active-burned', todayData.activeCaloriesBurned ?? null, 'kcal');
+
+// ── Charts ────────────────────────────────────────────────
+const BLUE = '#29B6F6';
+const BLUE_DARK = '#0288D1';
+const ORANGE = '#FB923C';
+const GREEN = '#34D399';
+const PURPLE = '#A78BFA';
+
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#1A1A2E',
+      titleColor: '#fff',
+      bodyColor: '#E5E7EB',
+      padding: 10,
+      cornerRadius: 8,
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: '#9CA3AF', font: { size: 11 }, maxRotation: 0, maxTicksLimit: 7 }
+    },
+    y: {
+      grid: { color: '#F3F4F6' },
+      ticks: { color: '#9CA3AF', font: { size: 11 } },
+      border: { display: false }
+    }
+  }
+};
+
+const labels = DATA.map(d => {
+  const dt = parseDate(d.date);
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+});
+
+// Weight chart
+new Chart(document.getElementById('chart-weight'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [{
+      data: DATA.map(d => d.weight ?? null),
+      borderColor: BLUE_DARK,
+      backgroundColor: 'rgba(41,182,246,0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: BLUE_DARK,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      spanGaps: true
+    }]
+  },
+  options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { display: false } } }
+});
+
+// Steps chart
+new Chart(document.getElementById('chart-steps'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      data: DATA.map(d => d.steps ?? null),
+      backgroundColor: 'rgba(41,182,246,0.7)',
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: { ...chartDefaults }
+});
+
+// Calories eaten vs burned
+new Chart(document.getElementById('chart-calories'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Eaten',
+        data: DATA.map(d => d.caloriesEaten ?? null),
+        borderColor: ORANGE,
+        backgroundColor: 'rgba(251,146,60,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: ORANGE,
+        spanGaps: true
+      },
+      {
+        label: 'Total Burned',
+        data: DATA.map(d => d.totalCaloriesBurned ?? null),
+        borderColor: BLUE,
+        backgroundColor: 'rgba(41,182,246,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: BLUE,
+        spanGaps: true
+      }
+    ]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: {
+      ...chartDefaults.plugins,
+      legend: {
+        display: true,
+        position: 'top',
+        labels: { color: '#6B7280', font: { size: 11 }, boxWidth: 12, padding: 12 }
+      }
+    }
+  }
+});
+
+// Macros
+new Chart(document.getElementById('chart-macros'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Protein',
+        data: DATA.map(d => d.protein ?? null),
+        borderColor: ORANGE,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: ORANGE,
+        spanGaps: true,
+        fill: false
+      },
+      {
+        label: 'Carbs',
+        data: DATA.map(d => d.carbs ?? null),
+        borderColor: GREEN,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: GREEN,
+        spanGaps: true,
+        fill: false
+      },
+      {
+        label: 'Fat',
+        data: DATA.map(d => d.fat ?? null),
+        borderColor: PURPLE,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: PURPLE,
+        spanGaps: true,
+        fill: false
+      }
+    ]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: {
+      ...chartDefaults.plugins,
+      legend: {
+        display: true,
+        position: 'top',
+        labels: { color: '#6B7280', font: { size: 11 }, boxWidth: 12, padding: 12 }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
