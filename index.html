@@ -287,7 +287,20 @@ const DATA = [
     carbs: 131,
     fat: 81,
     totalCaloriesBurned: 3932,
-    activeCaloriesBurned: 1440
+    activeCaloriesBurned: 1440,
+    exerciseMinutes: 122
+  },
+  {
+    date: "2026-06-06",
+    weight: 243.1,
+    steps: null,
+    caloriesEaten: 1769,
+    protein: 152,
+    carbs: 96,
+    fat: 96,
+    totalCaloriesBurned: null,
+    activeCaloriesBurned: null,
+    exerciseMinutes: null
   }
 ];
 </script>
@@ -368,6 +381,14 @@ const DATA = [
       <div class="card-icon">⚡</div>
       <div class="card-label">Active Burned</div>
       <div id="val-active-burned" class="card-value no-data">—<span class="card-unit">kcal</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top: 10px;">
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <div class="card-label">Exercise Minutes</div>
+      <div id="val-exercise-mins" class="card-value no-data">—<span class="card-unit">mins</span></div>
     </div>
   </div>
 
@@ -484,6 +505,7 @@ function renderStats(view) {
           fat:                  avg(w.map(d => d.fat)),
           totalCaloriesBurned:  avg(w.map(d => d.totalCaloriesBurned)),
           activeCaloriesBurned: avg(w.map(d => d.activeCaloriesBurned)),
+          exerciseMinutes:      avg(w.map(d => d.exerciseMinutes)),
         };
       })();
 
@@ -495,6 +517,7 @@ function renderStats(view) {
   setMacro('val-fat',         source.fat                 ?? null);
   setVal('val-total-burned',  source.totalCaloriesBurned  ?? null, 'kcal');
   setVal('val-active-burned', source.activeCaloriesBurned ?? null, 'kcal');
+  setVal('val-exercise-mins', source.exerciseMinutes      ?? null, 'mins');
 }
 
 function switchView(view) {
